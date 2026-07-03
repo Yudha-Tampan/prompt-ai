@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prompthive — Perpustakaan Prompt AI Komunitas</title>
+<link rel="icon" type="image/svg+xml" href="assets/img/logo.svg" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="antialiased">
+
+<div id="navbarMount"></div>
+
+<section class="hero-noise border-b border-subtle">
+<div class="max-w-7xl mx-auto px-5 sm:px-8 pt-16 pb-14">
+<div class="max-w-2xl">
+<span class="chip inline-block mb-5">Perpustakaan Prompt Komunitas</span>
+<h1 class="font-display text-4xl sm:text-5xl font-semibold tracking-tight leading-tight mb-5">
+Kurasi prompt terbaik dari <span class="gradient-accent-text">seluruh komunitas AI</span>
+</h1>
+<p class="text-sub text-base sm:text-lg leading-relaxed mb-8">
+Temukan, simpan, dan bagikan prompt untuk ChatGPT, Claude, Midjourney, dan puluhan model AI lainnya. Diarsipkan rapi, siap pakai kapan saja.
+</p>
+<div class="flex flex-wrap items-center gap-3">
+<a href="upload.html" class="btn-primary px-6 py-3 rounded-xl text-sm inline-flex items-center gap-2">
+<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+Tambah Prompt
+</a>
+<a href="kategori.html" class="btn-secondary px-6 py-3 rounded-xl text-sm">Jelajahi Kategori</a>
+</div>
+</div>
+</div>
+</section>
+
+<main class="max-w-7xl mx-auto px-5 sm:px-8 py-12">
+
+<div class="flex flex-col lg:flex-row gap-4 mb-8">
+<div class="relative flex-1">
+<input id="searchInput" type="text" placeholder="Cari judul atau isi prompt..." class="field w-full px-4 py-3 rounded-xl text-sm" />
+</div>
+<select id="sortSelect" class="field px-4 py-3 rounded-xl text-sm lg:w-56">
+<option value="newest">Terbaru</option>
+<option value="oldest">Terlama</option>
+</select>
+</div>
+
+<div id="categoryChips" class="flex flex-wrap gap-2 mb-10"></div>
+
+<div id="promptGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+
+</main>
+
+<div id="footerMount"></div>
+
+<script src="js/env.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/toast.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/navbar.js"></script>
+<script src="js/prompts.js"></script>
+<script>
+let activeCategory = "Semua";
+let allPrompts = [];
+
+function renderCategoryChips() {
+  const mount = document.getElementById("categoryChips");
+  const cats = ["Semua"].concat(CATEGORIES);
+  mount.innerHTML = cats
+    .map((cat) => {
+      const activeClass = cat === activeCategory ? "chip active" : "chip";
+      return '<button class="' + activeClass + ' cat-chip-btn" data-cat="' + cat + '">' + cat + "</button>";
+    })
+    .join("");
+
+  mount.querySelectorAll(".cat-chip-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      activeCategory = btn.dataset.cat;
+      renderCategoryChips();
+      applyFiltersAndRender();
+    });
+  });
+}
+
+function applyFiltersAndRender() {
+  const grid = document.getElementById("promptGrid");
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  const sortMode = document.getElementById("sortSelect").value;
+
+  let filtered = allPrompts.filter((p) => {
+    const matchesCategory = activeCategory === "Semua" || getPromptCategories(p).includes(activeCategory);
+    const matchesQuery = !query || p.title.toLowerCase().includes(query) || p.content.toLowerCase().includes(query);
+    return matchesCategory && matchesQuery;
+  });
+
+  filtered.sort((a, b) => {
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+    return sortMode === "newest" ? dateB - dateA : dateA - dateB;
+  });
+
+  if (filtered.length === 0) {
+    renderEmptyState(grid, "Tidak ada prompt yang cocok dengan pencarian atau filter kategori kamu. Coba kata kunci lain.");
+    return;
+  }
+
+  grid.innerHTML = filtered.map((p, i) => buildPromptCard(p, i)).join("");
+  attachPromptCardEvents(grid);
+}
+
+async function initHome() {
+  await seedDatabase();
+  renderNavbar("beranda");
+  renderFooter();
+  renderCategoryChips();
+
+  const grid = document.getElementById("promptGrid");
+  renderLoadingSkeleton(grid, 6);
+
+  setTimeout(() => {
+    allPrompts = getPrompts();
+    applyFiltersAndRender();
+  }, 350);
+
+  document.getElementById("searchInput").addEventListener("input", applyFiltersAndRender);
+  document.getElementById("sortSelect").addEventListener("change", applyFiltersAndRender);
+}
+
+initHome();
+</script>
+</body>
+</html>

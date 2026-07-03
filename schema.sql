@@ -1,0 +1,29 @@
+CREATE TABLE IF NOT EXISTS users (
+  id VARCHAR(32) NOT NULL PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  name VARCHAR(120) NOT NULL,
+  email VARCHAR(190) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  bio TEXT NOT NULL,
+  avatar TEXT NOT NULL,
+  banned TINYINT(1) NOT NULL DEFAULT 0,
+  createdAt DATETIME(3) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS prompts (
+  id VARCHAR(32) NOT NULL PRIMARY KEY,
+  userId VARCHAR(32) NOT NULL,
+  username VARCHAR(50) NOT NULL,
+  title VARCHAR(180) NOT NULL,
+  password TEXT NOT NULL,
+  category VARCHAR(80) NOT NULL,
+  content MEDIUMTEXT NOT NULL,
+  categories JSON NULL,
+  createdAt DATETIME(3) NOT NULL,
+  INDEX idx_prompts_userId (userId),
+  INDEX idx_prompts_category (category),
+  CONSTRAINT fk_prompts_user
+    FOREIGN KEY (userId) REFERENCES users(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

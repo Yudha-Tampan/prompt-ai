@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Profil — Prompthive</title>
+<link rel="icon" type="image/svg+xml" href="assets/img/logo.svg" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="antialiased">
+
+<div id="navbarMount"></div>
+
+<main class="max-w-5xl mx-auto px-5 sm:px-8 py-14">
+
+<div id="profileHeader" class="surface rounded-2xl p-6 sm:p-8 mb-10 animate-fade-up"></div>
+
+<div class="flex items-center justify-between mb-6">
+<h2 class="font-display text-xl font-semibold">Prompt Diunggah</h2>
+<span id="promptCount" class="text-sm text-sub font-mono"></span>
+</div>
+
+<div id="profilePrompts" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
+
+</main>
+
+<div id="editModal" class="fixed inset-0 z-50 hidden items-center justify-center px-5 modal-backdrop">
+<div class="surface rounded-2xl p-6 sm:p-8 w-full max-w-md animate-scale-in">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-display text-lg font-semibold">Edit Profil</h3>
+<button id="closeEditModal" class="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5">
+<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+</button>
+</div>
+
+<form id="editForm" class="space-y-4">
+<div class="flex justify-center mb-2">
+<label for="editAvatarInput" class="cursor-pointer relative">
+<span class="avatar-ring w-20 h-20 block"><span class="avatar-ring-inner w-full h-full"><img id="editAvatarPreview" class="w-full h-full object-cover" /></span></span>
+<span class="absolute bottom-0 right-0 w-7 h-7 rounded-full gradient-accent-bg flex items-center justify-center border-2 border-white">
+<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+</span>
+</label>
+<input type="file" id="editAvatarInput" accept="image/*" class="hidden" />
+</div>
+<div>
+<label class="text-sm font-medium mb-1.5 block">Nama Lengkap</label>
+<input type="text" id="editName" class="field w-full px-4 py-3 rounded-xl text-sm" required />
+</div>
+<div>
+<label class="text-sm font-medium mb-1.5 block">Bio</label>
+<textarea id="editBio" class="field w-full px-4 py-3 rounded-xl text-sm" style="min-height:100px"></textarea>
+</div>
+<div class="flex items-center gap-3 pt-2">
+<button type="submit" class="btn-primary flex-1 py-3 rounded-xl text-sm">Simpan Perubahan</button>
+</div>
+</form>
+</div>
+</div>
+
+<div id="footerMount"></div>
+
+<script src="js/env.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/toast.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/navbar.js"></script>
+<script src="js/prompts.js"></script>
+<script>
+let profileUser = null;
+let isOwnProfile = false;
+let uploadedAvatar = null;
+
+function getUrlUsername() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("user");
+}
+
+function renderProfileHeader() {
+  const mount = document.getElementById("profileHeader");
+  const prompts = getPrompts().filter((p) => p.userId === profileUser.id);
+
+  const editBtn = isOwnProfile
+    ? '<button id="openEditModal" class="btn-secondary px-5 py-2.5 rounded-xl text-sm">Edit Profil</button>'
+    : "";
+
+  mount.innerHTML =
+    '<div class="flex flex-col sm:flex-row sm:items-center gap-6">' +
+    '<span class="avatar-ring w-24 h-24 shrink-0 mx-auto sm:mx-0"><span class="avatar-ring-inner w-full h-full"><img src="' +
+    profileUser.avatar +
+    '" class="w-full h-full object-cover" /></span></span>' +
+    '<div class="flex-1 text-center sm:text-left">' +
+    '<h1 class="font-display text-2xl font-semibold mb-1">' +
+    escapeHtml(profileUser.name) +
+    "</h1>" +
+    '<p class="text-sub text-sm font-mono mb-3">@' +
+    escapeHtml(profileUser.username) +
+    "</p>" +
+    '<p class="text-sm text-sub max-w-md mb-4">' +
+    (profileUser.bio ? escapeHtml(profileUser.bio) : "Belum ada bio.") +
+    "</p>" +
+    '<div class="flex items-center justify-center sm:justify-start gap-6 text-sm">' +
+    '<div><span class="font-display font-semibold">' +
+    prompts.length +
+    '</span> <span class="text-sub">Prompt</span></div>' +
+    '<div><span class="font-display font-semibold">' +
+    formatDate(profileUser.createdAt) +
+    '</span> <span class="text-sub">Bergabung</span></div>' +
+    "</div>" +
+    "</div>" +
+    '<div class="shrink-0 mx-auto sm:mx-0">' +
+    editBtn +
+    "</div>" +
+    "</div>";
+
+  document.getElementById("promptCount").textContent = prompts.length + " prompt";
+
+  const grid = document.getElementById("profilePrompts");
+  if (prompts.length === 0) {
+    renderEmptyState(grid, isOwnProfile ? "Kamu belum mengunggah prompt apapun. Yuk mulai bagikan prompt pertamamu." : "Pengguna ini belum mengunggah prompt.");
+    return;
+  }
+
+  const sorted = prompts.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  grid.innerHTML = sorted.map((p, i) => buildPromptCard(p, i)).join("");
+  attachPromptCardEvents(grid);
+
+  if (isOwnProfile) {
+    document.getElementById("openEditModal").addEventListener("click", openEditModal);
+  }
+}
+
+function openEditModal() {
+  const modal = document.getElementById("editModal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+  document.getElementById("editName").value = profileUser.name;
+  document.getElementById("editBio").value = profileUser.bio;
+  document.getElementById("editAvatarPreview").src = profileUser.avatar;
+  uploadedAvatar = null;
+}
+
+function closeEditModal() {
+  const modal = document.getElementById("editModal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+async function initProfile() {
+  await seedDatabase();
+  renderNavbar("");
+  renderFooter();
+
+  const currentUser = requireAuth();
+  if (!currentUser) return;
+
+  const targetUsername = getUrlUsername();
+
+  if (targetUsername && targetUsername !== currentUser.username) {
+    const users = getUsers();
+    profileUser = users.find((u) => u.username === targetUsername);
+    if (!profileUser) {
+      window.location.href = "index.html";
+      return;
+    }
+    isOwnProfile = false;
+  } else {
+    profileUser = currentUser;
+    isOwnProfile = true;
+  }
+
+  renderProfileHeader();
+
+  if (isOwnProfile) {
+    document.getElementById("closeEditModal").addEventListener("click", closeEditModal);
+
+    const editAvatarInput = document.getElementById("editAvatarInput");
+    editAvatarInput.addEventListener("change", () => {
+      const file = editAvatarInput.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        showToast("Ukuran foto maksimal 2MB", "error");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        uploadedAvatar = e.target.result;
+        document.getElementById("editAvatarPreview").src = uploadedAvatar;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById("editForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const users = getUsers();
+      const idx = users.findIndex((u) => u.id === profileUser.id);
+      if (idx === -1) return;
+
+      users[idx].name = document.getElementById("editName").value.trim();
+      users[idx].bio = document.getElementById("editBio").value.trim();
+      if (uploadedAvatar) {
+        users[idx].avatar = uploadedAvatar;
+      }
+
+      saveUsers(users);
+      profileUser = users[idx];
+
+      closeEditModal();
+      renderProfileHeader();
+      showToast("Profil berhasil diperbarui", "success");
+    });
+  }
+}
+
+initProfile();
+</script>
+</body>
+</html>

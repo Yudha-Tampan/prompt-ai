@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kategori — Prompthive</title>
+<link rel="icon" type="image/svg+xml" href="assets/img/logo.svg" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="antialiased">
+
+<div id="navbarMount"></div>
+
+<section class="border-b border-subtle hero-noise">
+<div class="max-w-7xl mx-auto px-5 sm:px-8 pt-14 pb-10">
+<span class="chip inline-block mb-4">Jelajahi</span>
+<h1 class="font-display text-3xl sm:text-4xl font-semibold mb-3">Kategori Prompt</h1>
+<p class="text-sub text-sm sm:text-base max-w-xl">Pilih kategori model AI untuk menemukan prompt yang paling relevan dengan kebutuhanmu.</p>
+</div>
+</section>
+
+<main class="max-w-7xl mx-auto px-5 sm:px-8 py-12">
+
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+<aside class="lg:col-span-1">
+<div class="surface rounded-2xl p-5 lg:sticky lg:top-24">
+<h2 class="font-display font-semibold text-sm mb-4 text-sub uppercase tracking-wide">Semua Kategori</h2>
+<div id="categoryList" class="flex flex-col gap-1 sidebar-scroll"></div>
+</div>
+</aside>
+
+<section class="lg:col-span-3">
+
+<div class="flex flex-col sm:flex-row gap-4 mb-6">
+<div class="relative flex-1">
+<input id="searchInput" type="text" placeholder="Cari dalam kategori ini..." class="field w-full px-4 py-3 rounded-xl text-sm" />
+</div>
+<select id="sortSelect" class="field px-4 py-3 rounded-xl text-sm sm:w-52">
+<option value="newest">Terbaru</option>
+<option value="oldest">Terlama</option>
+</select>
+</div>
+
+<div class="flex items-center justify-between mb-6">
+<h2 id="currentCategoryTitle" class="font-display text-xl font-semibold">Semua Kategori</h2>
+<span id="resultCount" class="text-sm text-sub font-mono"></span>
+</div>
+
+<div id="promptGrid" class="grid grid-cols-1 xl:grid-cols-2 gap-5"></div>
+
+</section>
+</div>
+
+</main>
+
+<div id="footerMount"></div>
+
+<script src="js/env.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/toast.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/navbar.js"></script>
+<script src="js/prompts.js"></script>
+<script>
+let activeCategory = "Semua";
+let allPrompts = [];
+
+function getUrlCategory() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("cat");
+}
+
+function renderCategoryList() {
+  const mount = document.getElementById("categoryList");
+  const cats = ["Semua"].concat(CATEGORIES);
+
+  mount.innerHTML = cats
+    .map((cat) => {
+      const count = cat === "Semua" ? allPrompts.length : allPrompts.filter((p) => getPromptCategories(p).includes(cat)).length;
+      const activeClass = cat === activeCategory ? "bg-indigo-500 text-white" : "hover:bg-black/5 dark:hover:bg-white/5 text-sub";
+      return (
+        '<button class="cat-list-btn flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ' +
+        activeClass +
+        '" data-cat="' +
+        cat +
+        '"><span>' +
+        cat +
+        '</span><span class="font-mono text-xs opacity-80">' +
+        count +
+        "</span></button>"
+      );
+    })
+    .join("");
+
+  mount.querySelectorAll(".cat-list-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      activeCategory = btn.dataset.cat;
+      const url = new URL(window.location);
+      if (activeCategory === "Semua") {
+        url.searchParams.delete("cat");
+      } else {
+        url.searchParams.set("cat", activeCategory);
+      }
+      window.history.replaceState({}, "", url);
+      renderCategoryList();
+      applyFiltersAndRender();
+    });
+  });
+}
+
+function applyFiltersAndRender() {
+  const grid = document.getElementById("promptGrid");
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  const sortMode = document.getElementById("sortSelect").value;
+
+  document.getElementById("currentCategoryTitle").textContent = activeCategory;
+
+  let filtered = allPrompts.filter((p) => {
+    const matchesCategory = activeCategory === "Semua" || getPromptCategories(p).includes(activeCategory);
+    const matchesQuery = !query || p.title.toLowerCase().includes(query) || p.content.toLowerCase().includes(query);
+    return matchesCategory && matchesQuery;
+  });
+
+  filtered.sort((a, b) => {
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+    return sortMode === "newest" ? dateB - dateA : dateA - dateB;
+  });
+
+  document.getElementById("resultCount").textContent = filtered.length + " prompt";
+
+  if (filtered.length === 0) {
+    renderEmptyState(grid, "Belum ada prompt di kategori ini. Jadilah yang pertama menambahkan prompt.");
+    return;
+  }
+
+  grid.innerHTML = filtered.map((p, i) => buildPromptCard(p, i)).join("");
+  attachPromptCardEvents(grid);
+}
+
+async function initKategori() {
+  await seedDatabase();
+  renderNavbar("kategori");
+  renderFooter();
+
+  const urlCat = getUrlCategory();
+  if (urlCat && CATEGORIES.includes(urlCat)) {
+    activeCategory = urlCat;
+  }
+
+  const grid = document.getElementById("promptGrid");
+  renderLoadingSkeleton(grid, 6);
+
+  setTimeout(() => {
+    allPrompts = getPrompts();
+    renderCategoryList();
+    applyFiltersAndRender();
+  }, 300);
+
+  document.getElementById("searchInput").addEventListener("input", applyFiltersAndRender);
+  document.getElementById("sortSelect").addEventListener("change", applyFiltersAndRender);
+}
+
+initKategori();
+</script>
+</body>
+</html>

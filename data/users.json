@@ -1,0 +1,35 @@
+[
+  {
+    "id": "u001",
+    "username": "clara",
+    "name": "Clara Putri",
+    "email": "clara@example.com",
+    "password": "clara123",
+    "bio": "Pecinta AI dan penulis prompt kreatif. Suka eksplorasi model bahasa baru.",
+    "avatar": "assets/img/default-avatar.svg",
+    "banned": false,
+    "createdAt": "2026-01-10T08:30:00.000Z"
+  },
+  {
+    "id": "u002",
+    "username": "raka_dev",
+    "name": "Raka Pratama",
+    "email": "raka@example.com",
+    "password": "raka12345",
+    "bio": "Developer full-stack, suka membuat prompt untuk coding assistant.",
+    "avatar": "assets/img/default-avatar.svg",
+    "banned": false,
+    "createdAt": "2026-02-02T10:15:00.000Z"
+  },
+  {
+    "id": "u003",
+    "username": "sinta_art",
+    "name": "Sinta Amelia",
+    "email": "sinta@example.com",
+    "password": "sinta2026",
+    "bio": "Digital artist, fokus pada prompt Midjourney dan Stable Diffusion.",
+    "avatar": "assets/img/default-avatar.svg",
+    "banned": false,
+    "createdAt": "2026-03-18T14:45:00.000Z"
+  }
+]

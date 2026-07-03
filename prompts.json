@@ -1,0 +1,126 @@
+[
+  {
+    "id": "p001",
+    "userId": "u001",
+    "username": "clara",
+    "title": "Asisten Penulisan Artikel SEO Profesional",
+    "password": "",
+    "category": "ChatGPT",
+    "content": "Bertindaklah sebagai penulis konten SEO profesional dengan pengalaman lebih dari 10 tahun. Tugasmu adalah menulis artikel yang informatif, terstruktur rapi, dan dioptimalkan untuk mesin pencari. Gunakan gaya bahasa yang mudah dipahami namun tetap terlihat profesional. Sertakan heading, subheading, poin-poin penting, dan kesimpulan yang jelas. Sebelum menulis, tanyakan kepada saya topik, target audiens, dan kata kunci utama yang ingin digunakan.",
+    "createdAt": "2026-05-01T09:00:00.000Z",
+    "categories": [
+      "ChatGPT",
+      "Gemini",
+      "Claude"
+    ]
+  },
+  {
+    "id": "p002",
+    "userId": "u002",
+    "username": "raka_dev",
+    "title": "Code Reviewer Senior Full-Stack",
+    "password": "codex99",
+    "category": "Claude",
+    "content": "Kamu adalah senior software engineer yang bertugas melakukan code review mendalam. Analisis kode yang saya berikan dari sisi keamanan, performa, keterbacaan, dan best practice. Berikan saran perbaikan dalam bentuk poin-poin dengan contoh kode yang diperbaiki. Jika ada potensi bug atau celah keamanan, tandai dengan jelas dan jelaskan risikonya.",
+    "createdAt": "2026-05-03T11:20:00.000Z",
+    "categories": [
+      "Claude",
+      "ChatGPT",
+      "DeepSeek",
+      "Copilot"
+    ]
+  },
+  {
+    "id": "p003",
+    "userId": "u003",
+    "username": "sinta_art",
+    "title": "Prompt Potret Fantasi Sinematik",
+    "password": "",
+    "category": "Midjourney",
+    "content": "cinematic portrait of a young sorceress standing in an ancient enchanted forest, glowing runes floating around her, soft volumetric lighting, intricate fantasy armor with gold filigree, dramatic atmosphere, hyper detailed, octane render, 8k, artstation trending, style of greg rutkowski and alphonse mucha --ar 2:3 --v 6",
+    "createdAt": "2026-05-05T15:40:00.000Z",
+    "categories": [
+      "Midjourney",
+      "Leonardo AI",
+      "Ideogram"
+    ]
+  },
+  {
+    "id": "p004",
+    "userId": "u001",
+    "username": "clara",
+    "title": "Perencana Konten Media Sosial Mingguan",
+    "password": "",
+    "category": "Gemini",
+    "content": "Buatkan rencana konten media sosial selama satu minggu untuk sebuah brand di bidang [isi bidang usaha]. Untuk setiap hari, sertakan tema konten, ide caption singkat, jenis konten (foto, video, carousel, atau reels), serta rekomendasi waktu posting terbaik. Sesuaikan gaya bahasa agar terdengar santai namun tetap profesional dan sesuai dengan target audiens usia 18-35 tahun.",
+    "createdAt": "2026-05-08T08:10:00.000Z",
+    "categories": [
+      "Gemini",
+      "ChatGPT",
+      "Claude",
+      "Perplexity"
+    ]
+  },
+  {
+    "id": "p005",
+    "userId": "u002",
+    "username": "raka_dev",
+    "title": "Generator Dokumentasi API Otomatis",
+    "password": "",
+    "category": "DeepSeek",
+    "content": "Kamu adalah asisten dokumentasi teknis. Berdasarkan kode endpoint API yang saya berikan, buatkan dokumentasi lengkap dalam format markdown. Sertakan deskripsi endpoint, method HTTP, parameter request beserta tipe datanya, contoh request body, contoh response sukses dan gagal, serta kode status HTTP yang mungkin dikembalikan. Gunakan format tabel jika diperlukan agar mudah dibaca.",
+    "createdAt": "2026-05-10T13:25:00.000Z",
+    "categories": [
+      "DeepSeek",
+      "Copilot",
+      "ChatGPT"
+    ]
+  },
+  {
+    "id": "p006",
+    "userId": "u003",
+    "username": "sinta_art",
+    "title": "Ilustrasi Karakter Anime Gaya Studio",
+    "password": "",
+    "category": "Stable Diffusion",
+    "content": "masterpiece, best quality, ultra detailed, anime style illustration of a warrior girl with silver hair and blue eyes, wearing ornate samurai armor, cherry blossom petals falling around her, dynamic pose, dramatic lighting, studio ghibli inspired background, highly detailed face, sharp focus, trending on pixiv",
+    "createdAt": "2026-05-12T17:05:00.000Z",
+    "categories": [
+      "Stable Diffusion",
+      "Midjourney",
+      "Flux",
+      "Leonardo AI"
+    ]
+  },
+  {
+    "id": "p007",
+    "userId": "u001",
+    "username": "clara",
+    "title": "Konsultan Bisnis untuk Startup Pemula",
+    "password": "",
+    "category": "Grok",
+    "content": "Bertindaklah sebagai konsultan bisnis berpengalaman yang membantu founder startup pemula. Saya akan menjelaskan ide bisnis saya, dan kamu perlu menganalisis potensi pasar, risiko utama, model monetisasi yang cocok, serta strategi awal untuk mendapatkan pelanggan pertama. Berikan jawaban yang jujur, kritis, namun tetap membangun dan disertai langkah konkret yang bisa langsung dijalankan.",
+    "createdAt": "2026-05-15T10:50:00.000Z",
+    "categories": [
+      "Grok",
+      "ChatGPT",
+      "Claude"
+    ]
+  },
+  {
+    "id": "p008",
+    "userId": "u002",
+    "username": "raka_dev",
+    "title": "Debugging Assistant untuk Python",
+    "password": "",
+    "category": "Qwen",
+    "content": "Kamu adalah asisten debugging Python yang sangat teliti. Saya akan memberikan kode dan pesan error yang muncul. Jelaskan penyebab error tersebut secara detail, tunjukkan baris kode yang bermasalah, dan berikan solusi perbaikan lengkap dengan kode yang sudah diperbaiki. Jika ada beberapa kemungkinan penyebab, jelaskan masing-masing beserta cara memverifikasinya.",
+    "createdAt": "2026-05-18T09:35:00.000Z",
+    "categories": [
+      "Qwen",
+      "DeepSeek",
+      "ChatGPT",
+      "Ollama"
+    ]
+  }
+]

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Daftar — Prompthive</title>
+<link rel="icon" type="image/svg+xml" href="assets/img/logo.svg" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="antialiased">
+
+<div id="navbarMount"></div>
+
+<main class="min-h-[calc(100vh-64px)] flex items-center justify-center px-5 py-16 hero-noise">
+<div class="w-full max-w-md surface rounded-2xl p-8 sm:p-10 animate-scale-in">
+
+<div class="text-center mb-8">
+<img src="assets/img/logo.svg" alt="Prompthive" class="w-12 h-12 mx-auto mb-4" />
+<h1 class="font-display text-2xl font-semibold mb-2">Buat akun baru</h1>
+<p class="text-sub text-sm">Bergabung dan mulai bagikan prompt terbaikmu.</p>
+</div>
+
+<form id="registerForm" class="space-y-4">
+
+<div class="flex justify-center mb-2">
+<label for="avatarInput" class="cursor-pointer group relative">
+<span class="avatar-ring w-20 h-20 block"><span class="avatar-ring-inner w-full h-full"><img id="avatarPreview" src="assets/img/default-avatar.svg" class="w-full h-full object-cover" /></span></span>
+<span class="absolute bottom-0 right-0 w-7 h-7 rounded-full gradient-accent-bg flex items-center justify-center border-2 border-white">
+<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+</span>
+</label>
+<input type="file" id="avatarInput" accept="image/*" class="hidden" />
+</div>
+
+<div>
+<label class="text-sm font-medium mb-1.5 block">Nama Lengkap</label>
+<input type="text" id="name" class="field w-full px-4 py-3 rounded-xl text-sm" placeholder="Nama kamu" required />
+</div>
+<div>
+<label class="text-sm font-medium mb-1.5 block">Username</label>
+<input type="text" id="username" class="field w-full px-4 py-3 rounded-xl text-sm" placeholder="huruf kecil, angka, underscore" required />
+</div>
+<div>
+<label class="text-sm font-medium mb-1.5 block">Email</label>
+<input type="email" id="email" class="field w-full px-4 py-3 rounded-xl text-sm" placeholder="nama@email.com" required />
+</div>
+<div>
+<label class="text-sm font-medium mb-1.5 block">Password</label>
+<input type="password" id="password" class="field w-full px-4 py-3 rounded-xl text-sm" placeholder="Minimal 6 karakter" required />
+</div>
+<div>
+<label class="text-sm font-medium mb-1.5 block">Bio <span class="text-sub font-normal">(opsional)</span></label>
+<textarea id="bio" class="field w-full px-4 py-3 rounded-xl text-sm" style="min-height:80px" placeholder="Ceritakan sedikit tentang dirimu"></textarea>
+</div>
+
+<p id="errorMsg" class="text-sm text-red-500 hidden"></p>
+<button type="submit" class="btn-primary w-full py-3 rounded-xl text-sm">Daftar</button>
+</form>
+
+<p class="text-center text-sm text-sub mt-6">
+Sudah punya akun? <a href="login.html" class="text-indigo-500 font-medium hover:underline">Masuk di sini</a>
+</p>
+
+</div>
+</main>
+
+<div id="footerMount"></div>
+
+<script src="js/env.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/toast.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/navbar.js"></script>
+<script>
+let uploadedAvatar = null;
+
+async function initRegister() {
+  await seedDatabase();
+  renderNavbar("");
+  renderFooter();
+
+  const existingUser = getCurrentUser();
+  if (existingUser) {
+    window.location.href = "profile.html";
+    return;
+  }
+
+  const avatarInput = document.getElementById("avatarInput");
+  const avatarPreview = document.getElementById("avatarPreview");
+
+  avatarInput.addEventListener("change", () => {
+    const file = avatarInput.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      showToast("Ukuran foto maksimal 2MB", "error");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      uploadedAvatar = e.target.result;
+      avatarPreview.src = uploadedAvatar;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  const form = document.getElementById("registerForm");
+  const errorMsg = document.getElementById("errorMsg");
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    errorMsg.classList.add("hidden");
+
+    const data = {
+      name: document.getElementById("name").value,
+      username: document.getElementById("username").value.trim(),
+      email: document.getElementById("email").value,
+      password: document.getElementById("password").value,
+      bio: document.getElementById("bio").value,
+      avatar: uploadedAvatar
+    };
+
+    const result = registerUser(data);
+
+    if (!result.success) {
+      errorMsg.textContent = result.message;
+      errorMsg.classList.remove("hidden");
+      showToast(result.message, "error");
+      return;
+    }
+
+    showToast("Akun berhasil dibuat, selamat bergabung!", "success");
+    setTimeout(() => {
+      window.location.href = "index.html";
+    }, 700);
+  });
+}
+
+initRegister();
+</script>
+</body>
+</html>

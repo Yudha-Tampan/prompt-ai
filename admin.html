@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin — Prompthive</title>
+<link rel="icon" type="image/svg+xml" href="assets/img/logo.svg" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="antialiased">
+
+<div id="navbarMount"></div>
+
+<div id="adminLoginView" class="min-h-[calc(100vh-64px)] hidden items-center justify-center px-5 py-16 hero-noise">
+<div class="w-full max-w-md surface rounded-2xl p-8 sm:p-10 animate-scale-in">
+<div class="text-center mb-8">
+<div class="w-12 h-12 rounded-xl gradient-accent-bg flex items-center justify-center mx-auto mb-4">
+<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+</div>
+<h1 class="font-display text-2xl font-semibold mb-2">Panel Admin</h1>
+<p class="text-sub text-sm">Masuk dengan kredensial admin untuk mengelola Prompthive.</p>
+</div>
+
+<form id="adminLoginForm" class="space-y-4">
+<div>
+<label class="text-sm font-medium mb-1.5 block">Username Admin</label>
+<input type="text" id="adminUsername" class="field w-full px-4 py-3 rounded-xl text-sm" required />
+</div>
+<div>
+<label class="text-sm font-medium mb-1.5 block">Password Admin</label>
+<input type="password" id="adminPassword" class="field w-full px-4 py-3 rounded-xl text-sm" required />
+</div>
+<p id="adminErrorMsg" class="text-sm text-red-500 hidden"></p>
+<button type="submit" class="btn-primary w-full py-3 rounded-xl text-sm">Masuk sebagai Admin</button>
+</form>
+</div>
+</div>
+
+<div id="adminDashboardView" class="hidden">
+
+<div class="border-b border-subtle hero-noise">
+<div class="max-w-7xl mx-auto px-5 sm:px-8 pt-12 pb-8 flex items-center justify-between flex-wrap gap-4">
+<div>
+<span class="chip inline-block mb-3">Panel Kontrol</span>
+<h1 class="font-display text-3xl font-semibold">Dashboard Admin</h1>
+</div>
+<button id="adminLogoutBtn" class="btn-secondary px-5 py-2.5 rounded-xl text-sm">Keluar Admin</button>
+</div>
+</div>
+
+<main class="max-w-7xl mx-auto px-5 sm:px-8 py-12">
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+<div class="surface rounded-2xl p-5">
+<p class="text-sub text-xs font-mono mb-2">TOTAL USER</p>
+<p id="statUsers" class="font-display text-3xl font-semibold">0</p>
+</div>
+<div class="surface rounded-2xl p-5">
+<p class="text-sub text-xs font-mono mb-2">TOTAL PROMPT</p>
+<p id="statPrompts" class="font-display text-3xl font-semibold">0</p>
+</div>
+<div class="surface rounded-2xl p-5">
+<p class="text-sub text-xs font-mono mb-2">USER DIBANNED</p>
+<p id="statBanned" class="font-display text-3xl font-semibold">0</p>
+</div>
+<div class="surface rounded-2xl p-5">
+<p class="text-sub text-xs font-mono mb-2">KATEGORI AKTIF</p>
+<p id="statCategories" class="font-display text-3xl font-semibold">0</p>
+</div>
+</div>
+
+<div class="flex items-center gap-2 mb-8 border-b border-subtle">
+<button class="admin-tab-btn px-5 py-3 text-sm font-medium border-b-2 border-indigo-500" data-tab="prompts">Kelola Prompt</button>
+<button class="admin-tab-btn px-5 py-3 text-sm font-medium border-b-2 border-transparent text-sub" data-tab="users">Kelola User</button>
+</div>
+
+<div id="tabPrompts">
+<div class="relative mb-6 max-w-md">
+<input id="adminPromptSearch" type="text" placeholder="Cari prompt..." class="field w-full px-4 py-2.5 rounded-xl text-sm" />
+</div>
+<div id="adminPromptList" class="flex flex-col gap-3"></div>
+</div>
+
+<div id="tabUsers" class="hidden">
+<div class="relative mb-6 max-w-md">
+<input id="adminUserSearch" type="text" placeholder="Cari user..." class="field w-full px-4 py-2.5 rounded-xl text-sm" />
+</div>
+<div id="adminUserList" class="flex flex-col gap-3"></div>
+</div>
+
+</main>
+</div>
+
+<div id="footerMount"></div>
+
+<script src="js/env.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/toast.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/navbar.js"></script>
+<script src="js/prompts.js"></script>
+<script>
+function renderStats() {
+  const users = getUsers();
+  const prompts = getPrompts();
+  const banned = users.filter((u) => u.banned).length;
+  const allCats = [];
+  prompts.forEach((p) => getPromptCategories(p).forEach((c) => allCats.push(c)));
+  const activeCats = new Set(allCats).size;
+
+  document.getElementById("statUsers").textContent = users.length;
+  document.getElementById("statPrompts").textContent = prompts.length;
+  document.getElementById("statBanned").textContent = banned;
+  document.getElementById("statCategories").textContent = activeCats;
+}
+
+function renderAdminPromptList() {
+  const list = document.getElementById("adminPromptList");
+  const query = document.getElementById("adminPromptSearch").value.trim().toLowerCase();
+  const prompts = getPrompts()
+    .slice()
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .filter((p) => !query || p.title.toLowerCase().includes(query) || p.username.toLowerCase().includes(query));
+
+  if (prompts.length === 0) {
+    renderEmptyState(list, "Tidak ada prompt yang ditemukan.");
+    return;
+  }
+
+  list.innerHTML = prompts
+    .map((p) => {
+      return (
+        '<div class="surface rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">' +
+        '<div class="flex-1 min-w-0">' +
+        '<div class="flex items-center gap-2 mb-1.5 flex-wrap">' +
+        '<span class="font-semibold text-sm">' +
+        escapeHtml(p.title) +
+        "</span>" +
+        getPromptCategories(p)
+          .map((c) => '<span class="chip">' + escapeHtml(c) + "</span>")
+          .join("") +
+        "</div>" +
+        '<p class="text-xs text-sub font-mono">oleh @' +
+        escapeHtml(p.username) +
+        " &middot; " +
+        formatDate(p.createdAt) +
+        "</p>" +
+        '<p class="text-sm text-sub mt-2 line-clamp-2">' +
+        escapeHtml(p.content) +
+        "</p>" +
+        "</div>" +
+        '<button class="admin-delete-prompt-btn btn-secondary px-4 py-2 rounded-xl text-sm text-red-500 shrink-0" data-id="' +
+        p.id +
+        '">Hapus</button>' +
+        "</div>"
+      );
+    })
+    .join("");
+
+  list.querySelectorAll(".admin-delete-prompt-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("Yakin ingin menghapus prompt ini secara permanen?")) return;
+      const prompts = getPrompts().filter((p) => p.id !== btn.dataset.id);
+      await savePrompts(prompts);
+      showToast("Prompt berhasil dihapus", "success");
+      renderAdminPromptList();
+      renderStats();
+    });
+  });
+}
+
+function renderAdminUserList() {
+  const list = document.getElementById("adminUserList");
+  const query = document.getElementById("adminUserSearch").value.trim().toLowerCase();
+  const users = getUsers().filter((u) => !query || u.name.toLowerCase().includes(query) || u.username.toLowerCase().includes(query));
+
+  if (users.length === 0) {
+    renderEmptyState(list, "Tidak ada user yang ditemukan.");
+    return;
+  }
+
+  list.innerHTML = users
+    .map((u) => {
+      const promptCount = getPrompts().filter((p) => p.userId === u.id).length;
+      const statusBadge = u.banned
+        ? '<span class="chip" style="color:#EF4444;border-color:#EF4444">Dibanned</span>'
+        : '<span class="chip" style="color:#22D3B8;border-color:#22D3B8">Aktif</span>';
+      const actionBtn = u.banned
+        ? '<button class="admin-unban-btn btn-secondary px-4 py-2 rounded-xl text-sm shrink-0" data-id="' + u.id + '">Buka Ban</button>'
+        : '<button class="admin-ban-btn btn-secondary px-4 py-2 rounded-xl text-sm text-red-500 shrink-0" data-id="' + u.id + '">Ban User</button>';
+
+      return (
+        '<div class="surface rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">' +
+        '<div class="flex items-center gap-3 flex-1 min-w-0">' +
+        '<span class="avatar-ring w-10 h-10 shrink-0"><span class="avatar-ring-inner w-full h-full"><img src="' +
+        u.avatar +
+        '" class="w-full h-full object-cover" /></span></span>' +
+        '<div class="min-w-0">' +
+        '<div class="flex items-center gap-2 flex-wrap">' +
+        '<span class="font-semibold text-sm">' +
+        escapeHtml(u.name) +
+        "</span>" +
+        statusBadge +
+        "</div>" +
+        '<p class="text-xs text-sub font-mono">@' +
+        escapeHtml(u.username) +
+        " &middot; " +
+        promptCount +
+        " prompt</p>" +
+        "</div>" +
+        "</div>" +
+        actionBtn +
+        "</div>"
+      );
+    })
+    .join("");
+
+  list.querySelectorAll(".admin-ban-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const users = getUsers();
+      const idx = users.findIndex((u) => u.id === btn.dataset.id);
+      if (idx === -1) return;
+      users[idx].banned = true;
+      await saveUsers(users);
+      showToast("User telah dibanned", "success");
+      renderAdminUserList();
+      renderStats();
+    });
+  });
+
+  list.querySelectorAll(".admin-unban-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const users = getUsers();
+      const idx = users.findIndex((u) => u.id === btn.dataset.id);
+      if (idx === -1) return;
+      users[idx].banned = false;
+      await saveUsers(users);
+      showToast("Ban user telah dibuka", "success");
+      renderAdminUserList();
+      renderStats();
+    });
+  });
+}
+
+function setupAdminTabs() {
+  const tabBtns = document.querySelectorAll(".admin-tab-btn");
+  tabBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      tabBtns.forEach((b) => {
+        b.classList.remove("border-indigo-500");
+        b.classList.add("border-transparent", "text-sub");
+      });
+      btn.classList.add("border-indigo-500");
+      btn.classList.remove("border-transparent", "text-sub");
+
+      document.getElementById("tabPrompts").classList.add("hidden");
+      document.getElementById("tabUsers").classList.add("hidden");
+      document.getElementById("tab" + (btn.dataset.tab === "prompts" ? "Prompts" : "Users")).classList.remove("hidden");
+    });
+  });
+}
+
+function showAdminDashboard() {
+  document.getElementById("adminLoginView").classList.add("hidden");
+  document.getElementById("adminLoginView").classList.remove("flex");
+  document.getElementById("adminDashboardView").classList.remove("hidden");
+
+  renderStats();
+  renderAdminPromptList();
+  renderAdminUserList();
+  setupAdminTabs();
+
+  document.getElementById("adminPromptSearch").addEventListener("input", renderAdminPromptList);
+  document.getElementById("adminUserSearch").addEventListener("input", renderAdminUserList);
+  document.getElementById("adminLogoutBtn").addEventListener("click", logoutAdmin);
+}
+
+function showAdminLogin() {
+  document.getElementById("adminDashboardView").classList.add("hidden");
+  document.getElementById("adminLoginView").classList.remove("hidden");
+  document.getElementById("adminLoginView").classList.add("flex");
+
+  const form = document.getElementById("adminLoginForm");
+  const errorMsg = document.getElementById("adminErrorMsg");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorMsg.classList.add("hidden");
+
+    const username = document.getElementById("adminUsername").value.trim();
+    const password = document.getElementById("adminPassword").value;
+
+    const result = await loginAdmin(username, password);
+
+    if (!result.success) {
+      errorMsg.textContent = result.message;
+      errorMsg.classList.remove("hidden");
+      showToast(result.message, "error");
+      return;
+    }
+
+    showToast("Berhasil masuk sebagai admin", "success");
+    showAdminDashboard();
+  });
+}
+
+async function initAdmin() {
+  await seedDatabase();
+  renderNavbar("");
+  renderFooter();
+
+  const session = getAdminSession();
+  if (session) {
+    showAdminDashboard();
+  } else {
+    showAdminLogin();
+  }
+}
+
+initAdmin();
+</script>
+</body>
+</html>
